@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: external-oauth2-proxy
+  namespace: app
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'  # Deshabilitar redirección SSL en local
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/auth-url: "http://proxy.test.bc/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "http://proxy.test.bc/oauth2/start?rd=http://app.test.bc$escaped_request_uri"
+    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization,X-Auth-Request-Email,X-Auth-Request-Redirect"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Authorization $http_authorization;
+      proxy_set_header X-Auth-Request-Email $http_x_auth_request_email;
+      proxy_set_header X-Auth-Request-Redirect $request_uri;
+      rewrite ^/logout$ http://proxy.test.bc/oauth2/sign_out?rd=http%3A%2F%2Fproxy.test.bc redirect;
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.test.bc
+      http:
+        paths:
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nginx-example-service
+                port:
+                  number: 8080

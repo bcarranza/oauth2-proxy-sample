@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+  namespace: app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      k8s-app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth2-proxy
+    spec:
+      containers:
+      - args:
+        - --provider=oidc
+        - --session-store-type=redis
+        - --redis-connection-url=redis://redis.app.svc.cluster.local:6379
+        - --cookie-csrf-per-request=false
+        - --cookie-secure=false
+        - --cookie-httponly=true
+        - --cookie-samesite=lax
+        - --cookie-refresh=1h
+        - --cookie-expire=168h
+        - --cookie-domain=.test.bc
+        - --whitelist-domain=.test.bc
+        - --oidc-issuer-url=https://dev-abzeuz5oaqme42om.us.auth0.com/
+        - --email-domain=*
+        - --redirect-url=http://proxy.test.bc/oauth2/callback
+        - --upstream=static://200
+        - --http-address=0.0.0.0:4180
+        - --skip-provider-button=true
+        - --ssl-insecure-skip-verify=true
+        #- --pass-access-token=true
+        #- --pass-authorization-header=true
+        - --pass-user-headers=true
+        #- --set-authorization-header=true
+        - --oidc-jwks-url=https://dev-abzeuz5oaqme42om.us.auth0.com/.well-known/jwks.json
+        - --show-debug-on-error=true
+        - --set-xauthrequest=true
+        - --code-challenge-method=S256
+        - --standard-logging=true
+        - --auth-logging=true
+        - --request-logging=true
+        - --scope=openid profile email
+        - --backend-logout-url=https://dev-abzeuz5oaqme42om.us.auth0.com//v2/logout?id_token_hint={id_token}&client_id=DJtEipSXKgoUdpEhy0DCL1WoTyKIkAo3&returnTo=http://app.test.bc
+        - --standard-logging=true
+        - --request-logging=true
+        - --auth-logging=true
+        - --show-debug-on-error=true
+        #- --skip-csrf-check=true
+
+        # Set to false for production
+        # Register a new application
+        # https://github.com/settings/applications/new
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy
+              key: client-id
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy
+              key: client-secret
+        # docker run -ti --rm python:3-alpine python -c 'import secrets,base64; print(base64.b64encode(base64.b64encode(secrets.token_bytes(16))));'
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy
+              key: cookie-secret
+        # Recommended: remove email-domain=* in args and set an allowlist
+        # - name: OAUTH2_PROXY_GITHUB_USERS
+        #   value: alice,bob
+        image: quay.io/oauth2-proxy/oauth2-proxy:latest
+        imagePullPolicy: Always
+        name: oauth2-proxy
+        ports:
+        - containerPort: 4180
+          protocol: TCP
