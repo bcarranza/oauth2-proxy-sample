@@ -26,11 +26,11 @@ spec:
         - --cookie-samesite=lax
         - --cookie-refresh=1h
         - --cookie-expire=168h
-        - --cookie-domain=.test.bc
-        - --whitelist-domain=.test.bc
+        - --cookie-domain=.kcd-antigua.com
+        - --whitelist-domain=.kcd-antigua.com
         - --oidc-issuer-url=https://dev-abzeuz5oaqme42om.us.auth0.com/
         - --email-domain=*
-        - --redirect-url=http://proxy.test.bc/oauth2/callback
+        - --redirect-url=http://proxy.kcd-antigua.com/oauth2/callback
         - --upstream=static://200
         - --http-address=0.0.0.0:4180
         - --skip-provider-button=true
@@ -47,7 +47,7 @@ spec:
         - --auth-logging=true
         - --request-logging=true
         - --scope=openid profile email
-        - --backend-logout-url=https://dev-abzeuz5oaqme42om.us.auth0.com//v2/logout?id_token_hint={id_token}&client_id=DJtEipSXKgoUdpEhy0DCL1WoTyKIkAo3&returnTo=http://app.test.bc
+        - --backend-logout-url=https://dev-abzeuz5oaqme42om.us.auth0.com//v2/logout?id_token_hint={id_token}&client_id=DJtEipSXKgoUdpEhy0DCL1WoTyKIkAo3&returnTo=http://app.kcd-antigua.com
         - --standard-logging=true
         - --request-logging=true
         - --auth-logging=true
